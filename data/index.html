@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+	<html lang="nl">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Music Player Config</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				margin: 0;
+				padding: 0;
+				min-height: 100vh; /* Zorgt ervoor dat de body minstens de volledige viewport hoogte heeft */
+				display: flex; /* Gebruik flexbox om het formulier te centreren */
+				justify-content: center; /* Centreert horizontaal */
+				align-items: center; /* Centreert verticaal */
+			}
+			form {
+				max-width: 400px;
+				padding: 20px;
+				border: 1px solid #ccc;
+				border-radius: 8px;
+				background-color: rgba(255, 255, 255, 0.9); /* Licht doorschijnende achtergrond voor leesbaarheid */
+				box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+			}
+			h1 {
+				text-align: center;
+				color: #333;
+			}
+			label, select, input, button {
+				display: block;
+				margin-bottom: 15px;
+				width: 100%;
+				box-sizing: border-box;
+				padding: 8px;
+				border: 1px solid #ddd;
+				border-radius: 4px;
+			}
+			button {
+				background-color: #007bff;
+				color: white;
+				padding: 10px 15px;
+				border: none;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 16px;
+			}
+			button:hover {
+				background-color: #0056b3;
+			}
+		</style>
+	</head>
+	<body>
+
+		<form id="settingsForm" action="/" method="post">
+			
+			<h1>Player configuration</h1>
+
+			<label for="dropdownDevice">Bluetooth Device:</label>
+			<input type="string" name="device" id="invulDevice" placeholder="bluetooth dev" required>
+			<label for="invulVolume">Volume (0-100):</label>
+			<input type="number" name="volume" id="invulVolume" placeholder="volume (0-100) %" min="0" max="100" required>
+
+			<button type="submit">Set</button>
+		</form>
+
+		<script>
+			document.getElementById('settingsForm').addEventListener('submit', function(event) {
+				console.log('Formulier wordt verzonden...');
+				
+				const device = document.getElementById('invulDevice').value;
+				const volume = document.getElementById('invulVolume').value;
+				console.log(`Waarden die verzonden worden: Device=${device}, Volume=${volume}`);
+			});
+		</script>
+
+	</body>
+	</html>
