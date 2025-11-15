@@ -6,7 +6,6 @@
 #include "microSD.h"
 #include "playMp3.h"
 #include "storage.h"
-#include "connectBT.h"
 #include <WiFiManager.h>
 
 TFT_eSPI tft = TFT_eSPI();              // Invoke custom library
@@ -171,15 +170,15 @@ void loop()
     if (nextSong.isEmpty()) {
       Serial.println("Playlist done");
       currentLine++;
+      if (currentLine > maxLine) {
+        currentLine = 1;
+      }
       currentSong = getFirstSong();
       showPlayLists();
     } else {
       currentSong = nextSong;
     }
     coloredText( currentSong, TFT_YELLOW, SCREEN_HEIGHT - SPACER, myFont);
-  }
-  if (!reported && !bluetoothDevice.isEmpty()) {
-    connectBT(bluetoothDevice, "100");
   }
   if (reported++ > CYCLE_MS) {
     reported = 1;

@@ -3,7 +3,6 @@
 #include <AudioFileSourceSD.h>
 #include <AudioGeneratorMP3.h>
 #include <AudioOutputInternalDAC.h>
-#include "connectBT.h"
 
 AudioFileSourceSD *file;
 AudioGeneratorMP3 *mp3;
@@ -22,7 +21,7 @@ MP3STATE playMp3(const char *filename) {
       }
     }
     delete mp3;
-    mp3 = NULL;
+    mp3 = nullptr;
     if (file) { delete file; file = nullptr; }
     if (out)  { delete out;  out = nullptr; }
    }
