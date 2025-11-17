@@ -9,8 +9,7 @@
 #define VSPI_SS 5
 
 String listDir(fs::FS &microSD, const char *dirname, bool files) {
-  Serial.printf("Listing directory: %s\n", dirname);
-
+  Serial.print("Listing directory: ");Serial.println(dirname);
   File root = microSD.open(dirname);
   if (!root) {
     Serial.println("Failed to open directory");
@@ -32,10 +31,6 @@ String listDir(fs::FS &microSD, const char *dirname, bool files) {
         dirList += ";" ;
       }
     } else {
-      Serial.print("  FILE: ");
-      Serial.print(file.name());
-      Serial.print("  SIZE: ");
-      Serial.println(file.size());
       if (files) {
         String fileName = String(file.name());
         dirList += fileName;

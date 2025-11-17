@@ -7,13 +7,18 @@
 #include "playMp3.h"
 #include "storage.h"
 #include <WiFiManager.h>
+#include "a2dp_source.h"
 
 TFT_eSPI tft = TFT_eSPI();              // Invoke custom library
 
-#define CYCLE_MS 1000000
+#define CYCLE_MS 10000
 #define SCREEN_HEIGHT 320
 #define SCREEN_WIDTH 240
 #define SPACER 20
+
+void bt_info(const char* info){
+    Serial.printf("bt_info: %s\n", info);
+}
 
 int screenCenterX = SCREEN_WIDTH / 2;
 uint8_t myFont = 1;
@@ -21,14 +26,6 @@ int mySize = 1;
 int myDatum = TL_DATUM;
 uint16_t myBackgroundColor = TFT_BLACK;
 uint16_t myFontColor = TFT_WHITE;
-int currentLine = 1;
-
-// for connectBT
-void log(const char *msg, float t) {
-  Serial.print(msg);
-  Serial.print(" at ");
-  Serial.println(t);
-}
 
 void SetupCYD()
 {
@@ -41,30 +38,50 @@ void SetupCYD()
   tft.setTextDatum(myDatum);
   tft.setTextPadding(SCREEN_WIDTH);
 }
-String bluetoothDevice = "";
 
-void setupBTSink() {
-  WiFiManager wm;
-  WiFi.mode(WIFI_STA);
-  nvs_handle_t nvs_handle = initNvs();
-  bluetoothDevice = getNonVolatile(nvs_handle, "device");
-  if (bluetoothDevice.isEmpty()) {
-    wm.resetSettings();
-  }
-  WiFiManagerParameter btDev = WiFiManagerParameter("device", "Bluetooth speaker", bluetoothDevice.c_str(), 50);
-  wm.addParameter(&btDev);
-  tft.drawString("wifi: 'MusicPlayer'", 10, tft.height() - 100);
-  if (wm.autoConnect("MusicPlayer") && strlen(btDev.getValue()) && strcmp(bluetoothDevice.c_str(), btDev.getValue())) {
-    bluetoothDevice = String(btDev.getValue());
-    setNonVolatile(nvs_handle, "device", btDev.getValue());
-  }
-  WiFi.disconnect(true);
-  WiFi.mode(WIFI_OFF);
-  Serial.print("Speaker ");
+nvs_handle_t nvs_storage;
+String bluetoothDevice = "";
+String currentSong = "";
+int currentLine = 1;
+int maxLine = -1;
+
+void showStates() {
+  Serial.print("playList nr ");
+  Serial.print(currentLine);
+  Serial.print(" currentSong ");
+  Serial.print(currentSong);
+  Serial.print(" on ");
   Serial.println(bluetoothDevice);
 }
 
-int maxLine = -1;
+void setupStates() {
+  nvs_storage = initNvs();
+  bluetoothDevice = getNonVolatile(nvs_storage, "device");
+  currentSong = getNonVolatile(nvs_storage, "song");
+  String numStr = getNonVolatile(nvs_storage, "line");
+  if (!numStr.isEmpty()) {
+    currentLine = atoi(numStr.c_str());
+  }
+  if (bluetoothDevice.isEmpty()) {
+    WiFiManager wm;
+    WiFi.mode(WIFI_STA);
+    wm.resetSettings();
+    WiFiManagerParameter btDev = WiFiManagerParameter("device", "Bluetooth speaker", bluetoothDevice.c_str(), 50);
+    wm.addParameter(&btDev);
+    tft.drawString("wifi: 'MusicPlayer'", 10, tft.height() - 100);
+    tft.drawString(WiFi.localIP().toString().c_str(), 10, tft.height() - 100 + SPACER);
+    
+    if (wm.autoConnect("MusicPlayer") && strlen(btDev.getValue()) && strcmp(bluetoothDevice.c_str(), btDev.getValue())) {
+      bluetoothDevice = String(btDev.getValue());
+      setNonVolatile(nvs_storage, "device", btDev.getValue());
+    }
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+  }
+  showStates();
+  setOutput(bluetoothDevice.c_str());
+}
+
 String playLists[20];
 
 void split(String dirs) {
@@ -82,11 +99,10 @@ void split(String dirs) {
       Serial.println("at end");
       break;
     }
-    Serial.printf("Maxline set to %d", line);
+    Serial.printf("Maxline set to %d\n", line);
     maxLine = line;
   }
 }
-String currentSong = "";
 
 String getFirstSong() {
   Serial.println(playLists[currentLine]);
@@ -143,30 +159,44 @@ void setup()
 {
   Serial.begin(115200);
   SetupCYD();
-  setupBTSink();
   initMicroSD();
+  setupStates();
   String dirs = listDir("");
   split(dirs);
+  if (maxLine < currentLine) {
+    Serial.println("reset player");
+    currentLine = 1;
+    currentSong = "";
+  }
   Serial.println(dirs);
-  currentSong = getFirstSong();
+  if (currentSong.isEmpty()) {
+    currentSong = getFirstSong();
+  }
   showPlayLists();
+  setOutput(bluetoothDevice.c_str());
 }
-
+MP3STATE mp3State = MP3_DONE;
 long reported = 0;
 void loop()
 {
+  bt_loop();
   String playingSong = "/" + playLists[currentLine] + "/" + currentSong;
-  MP3STATE mp3State = playMp3(playingSong.c_str());
+  if (mp3State != MP3_NOT_RUNNING) {
+    mp3State = playMp3(playingSong.c_str());
+  }
   if (mp3State == MP3_STARTED) {
     Serial.print(playingSong);
     Serial.println(" started");
+    if (strcmp(currentSong.c_str(), getNonVolatile(nvs_storage, "song").c_str())) {
+      Serial.print("saving song ");
+      Serial.println(currentSong.c_str());
+      setNonVolatile(nvs_storage, "song", currentSong.c_str());
+    }
   }
   if (mp3State == MP3_DONE) {
-    Serial.print(playingSong);
-    Serial.println(" finished");
+    Serial.print(playingSong); Serial.println(" finished");
     String nextSong = getNextSong(currentSong.c_str());
-    Serial.print("Next song is ");
-    Serial.println(nextSong);
+    Serial.print("Next song is "); Serial.println(nextSong);
     if (nextSong.isEmpty()) {
       Serial.println("Playlist done");
       currentLine++;
@@ -174,15 +204,14 @@ void loop()
         currentLine = 1;
       }
       currentSong = getFirstSong();
+      Serial.print("saving list nr ");Serial.print(currentLine);
+      Serial.print("saving song ");Serial.println(currentSong.c_str());
+      setNonVolatile(nvs_storage, "line", String(currentLine).c_str());
+      setNonVolatile(nvs_storage, "song", currentSong.c_str());
       showPlayLists();
     } else {
       currentSong = nextSong;
     }
     coloredText( currentSong, TFT_YELLOW, SCREEN_HEIGHT - SPACER, myFont);
-  }
-  if (reported++ > CYCLE_MS) {
-    reported = 1;
-    Serial.print("playing ");
-    Serial.println(currentSong);
   }
 }
