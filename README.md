@@ -18,3 +18,7 @@ Use the standard ESP8266Audio library of the Arduino IDE<BR>
 <img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/CYD.jpg" alt="CYD" style="width:100px;height:200px;">
 Or use a 0.96 inch oled display with a SD card on a breadboard.<BR>
 <img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/oled_mplayer.jpg" alt="oled" style="width:100px;height:200px;">
+WifiMgr screenshots: <BR>
+<img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/WifiManager Musicplayer.jpg" alt="oled" style="width:100px;height:200px;">
+<img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/WifiMgr BT speaker.jpg" alt="oled" style="width:100px;height:200px;">
+
