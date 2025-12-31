@@ -16,7 +16,7 @@ Use WiFiManager to setup the bluetooth device.<BR>
 Use a CYD (Crappy/Cheap Yellow Display) for its display and microSD card.<BR>
 Use the standard ESP8266Audio library of the Arduino IDE<BR>
 <img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/CYD.jpg" alt="CYD" style="width:100px;height:200px;">
-Or use a 0.96 inch oled display with a SD card on a breadboard.<BR>
+Or use a 0.96 inch oled display with a SD card on a breadboard.https://photos.app.goo.gl/HxC6qbraZh6DEP4e6<BR>
 <img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/oled_mplayer.jpg" alt="oled" style="width:100px;height:200px;">
 WifiMgr screenshots: <BR>
 <img src="https://github.com/JosVanPutte/esp32-bluetooth-source/blob/main/WifiManager Musicplayer.jpg" alt="oled" style="width:100px;height:200px;">
